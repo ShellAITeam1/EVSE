@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v0.1.1 (2022-09-06)
+### Fix
+* EVSE-001 test pipeline release ([#1](https://github.com/ShellAITeam1/EVSE/issues/1)) ([`371a01f`](https://github.com/ShellAITeam1/EVSE/commit/371a01fe1ef0378004cd4c1ef73f6d8eba3cefac))
+
 ## v0.1.0 (2022-09-03)
 ### Feature
 * Evse 005 get submission file ([#9](https://github.com/YHallouard/Shell_ai_evse/issues/9)) ([`f09862a`](https://github.com/YHallouard/Shell_ai_evse/commit/f09862a28b3c0fb8ef71ca115c5e3e6831f99667))
