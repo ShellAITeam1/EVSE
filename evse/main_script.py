@@ -1,4 +1,5 @@
 """Main module."""
+import logging
 from pathlib import Path
 
 import pandas as pd
@@ -37,6 +38,7 @@ def main(data_path: Path):
 
 
 if __name__ == "__main__":
+    logging.info("Start Main")
     data_path = Path(__file__).parent.parent / "tests/test_data"
 
     main(data_path)
