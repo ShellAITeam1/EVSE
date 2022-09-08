@@ -1,4 +1,12 @@
 [[package]]
+name = "absl-py"
+version = "1.2.0"
+description = "Abseil Python Common Libraries, see https://github.com/abseil/abseil-py."
+category = "main"
+optional = false
+python-versions = ">=3.6"
+
+[[package]]
 name = "appnope"
 version = "0.1.3"
 description = "Disable App Nap on macOS >= 10.9"
@@ -882,6 +890,19 @@ optional = false
 python-versions = ">=3.8"
 
 [[package]]
+name = "ortools"
+version = "9.4.1874"
+description = "Google OR-Tools python libraries and modules"
+category = "main"
+optional = false
+python-versions = ">= 3.6"
+
+[package.dependencies]
+absl-py = ">=0.13"
+numpy = ">=1.13.3"
+protobuf = ">=3.19.4"
+
+[[package]]
 name = "packaging"
 version = "21.3"
 description = "Core utilities for Python packages"
@@ -1047,6 +1068,14 @@ python-versions = ">=3.6.2"
 
 [package.dependencies]
 wcwidth = "*"
+
+[[package]]
+name = "protobuf"
+version = "4.21.5"
+description = ""
+category = "main"
+optional = false
+python-versions = ">=3.7"
 
 [[package]]
 name = "psutil"
@@ -1617,9 +1646,10 @@ testing = ["pytest (>=6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytest-
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "ef99188c34f4dee01cf4ed8639f4eeeb4129ea6854b14f8ba6fcd6621eebafb6"
+content-hash = "337a4f9209c45cf6754796c5725d6e35ab0f999e8212316bac3560ad74f4df0c"
 
 [metadata.files]
+absl-py = []
 appnope = []
 argon2-cffi = []
 argon2-cffi-bindings = []
@@ -1688,6 +1718,7 @@ nest-asyncio = []
 nodeenv = []
 notebook = []
 numpy = []
+ortools = []
 packaging = []
 pandas = []
 pandocfilters = []
@@ -1703,6 +1734,7 @@ pluggy = []
 pre-commit = []
 prometheus-client = []
 prompt-toolkit = []
+protobuf = []
 psutil = []
 ptyprocess = []
 pure-eval = []
