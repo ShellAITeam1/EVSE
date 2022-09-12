@@ -107,3 +107,4 @@ ENV/
 
 # Data
 data/*.csv
+data/*.pickle
