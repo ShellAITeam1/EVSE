@@ -128,6 +128,7 @@ def extract_total_parking_slots(existing_infrastructure: pd.DataFrame) -> Dict:
 
 
 def extract_demand_forecast(demand_history_df: pd.DataFrame, years_list: List[int]) -> Dict:
+    demand_history_df.columns = demand_history_df.columns.astype(str)
     return {
         (year, demand_point_index): demand_history_df[
             demand_history_df[DEMAND_POINT_INDEX_COLUMN_NAME] == demand_point_index
