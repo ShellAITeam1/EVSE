@@ -104,3 +104,7 @@ ENV/
 # IDE settings
 .vscode/
 .idea/
+
+# Data
+data/*.csv
+data/*.pickle
