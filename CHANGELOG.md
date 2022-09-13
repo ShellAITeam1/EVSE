@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v0.2.0 (2022-09-13)
+### Feature
+* EVSE-002 try one year optimisation ([#2](https://github.com/ShellAITeam1/EVSE/issues/2)) ([`7323542`](https://github.com/ShellAITeam1/EVSE/commit/7323542f6268bab1d29619255cb1a3e0fb2ef287))
+
 ## v0.1.1 (2022-09-06)
 ### Fix
 * EVSE-001 test pipeline release ([#1](https://github.com/ShellAITeam1/EVSE/issues/1)) ([`371a01f`](https://github.com/ShellAITeam1/EVSE/commit/371a01fe1ef0378004cd4c1ef73f6d8eba3cefac))
