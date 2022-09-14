@@ -28,7 +28,7 @@ from ._variables import (
 
 
 def apply_scip_optimizer(
-    data_model: DataModel, limit_in_time: Optional[int] = None, show_output: bool = False
+    data_model: DataModel, limit_in_time: Optional[int] = None, show_output: bool = False, gap_limit: float = 0.01
 ) -> List[Result]:
     # Create the mip solver with the SCIP backend.
     logger.info("Create the mip solver with the SCIP backend")
@@ -39,6 +39,10 @@ def apply_scip_optimizer(
 
     if not solver:
         raise SolverInitiationError("Solver not created")
+
+    # set a stopping gap limit for MIP
+    solver_parameters = pywraplp.MPSolverParameters()
+    solver_parameters.SetDoubleParam(solver_parameters.RELATIVE_MIP_GAP, gap_limit)
 
     # Variables
     logger.info("Initializing Variables")
@@ -79,7 +83,7 @@ def apply_scip_optimizer(
 
     solver.EnableOutput()
     logger.info("Start Solving")
-    status = solver.Solve()
+    status = solver.Solve(solver_parameters)
 
     all_years_results = compute_all_years_results(status, demand_supply, supply_point_index_capacities, data_model)
 

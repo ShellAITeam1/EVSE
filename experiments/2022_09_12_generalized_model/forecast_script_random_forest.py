@@ -60,7 +60,7 @@ def train_model_with_cross_validation(demand_history_df: pd.DataFrame, forecast_
     train_pred = pd.Series(scores.get("estimator")[0].predict(X_train), index=y_train.index)
     print(mean_absolute_error(train_pred, y_train))
 
-    X_test = feature_space_pipe.fit_transform(stacked_demand_history_test_df)
+    X_test = feature_space_pipe.transform(stacked_demand_history_test_df)
     y_test = np.log1p(stacked_demand_history_test_df[target_column])
     test_pred = pd.Series(scores.get("estimator")[0].predict(X_test), index=y_test.index)
     print(mean_absolute_error(test_pred, y_test))

@@ -11,12 +11,8 @@ from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import MinMaxScaler
 
 
-def train_forecast(demand_history_df: pd.DataFrame, forecast_horizon: List[int]) -> pd.DataFrame:
+def train_forecast(demand_history_df: pd.DataFrame, forecast_horizon: List[int]) -> None:
     # TODO: Use constant after rebasing
-    # good_columns_demand_history_df = demand_history_df[[
-    #     'demand_point_index', 'x_coordinate', 'y_coordinate', '2010', '2011',
-    #     '2012', '2013', '2014', '2015', '2016', '2017', '2018'
-    # ]]
     stacked_demand_history_df = demand_history_df.set_index(
         ["demand_point_index", "x_coordinate", "y_coordinate"]
     ).stack(0)
@@ -69,7 +65,7 @@ def train_forecast(demand_history_df: pd.DataFrame, forecast_horizon: List[int])
     train_pred = pd.Series(scores.get("estimator")[0].predict(X_train), index=y_train.index)
     print(mean_absolute_error(train_pred, y_train))
 
-    X_test = feature_space_pipe.fit_transform(stacked_demand_history_test_df)
+    X_test = feature_space_pipe.transform(stacked_demand_history_test_df)
     y_test = np.log1p(stacked_demand_history_test_df["value"])
     test_pred = pd.Series(scores.get("estimator")[0].predict(X_test), index=y_test.index)
     print(mean_absolute_error(test_pred, y_test))
@@ -77,9 +73,6 @@ def train_forecast(demand_history_df: pd.DataFrame, forecast_horizon: List[int])
     original_y_test = stacked_demand_history_test_df["value"]
     exp_test_pred = pd.Series(np.exp(scores.get("estimator")[0].predict(X_test)), index=y_test.index)
     print(mean_absolute_error(exp_test_pred, original_y_test))
-
-    forecast_df = pd.DataFrame()
-    return forecast_df
 
 
 if __name__ == "__main__":

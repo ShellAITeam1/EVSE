@@ -11,6 +11,7 @@ numpy = "^1.23.2"
 ortools = "^9.4.1874"
 tqdm = "^4.64.1"
 sklearn = "^0.0"
+xgboost = "^1.6.2"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"

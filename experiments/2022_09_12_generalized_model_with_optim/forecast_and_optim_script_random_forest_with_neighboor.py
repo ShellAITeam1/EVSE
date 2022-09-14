@@ -24,8 +24,27 @@ from evse.optimisation.ortools.scip import apply_scip_optimizer
 from evse.scoring import get_scoring_dataframe
 
 
+def get_neighbour(index, radius):
+    x_lower_bound = index[1] - radius
+    y_lower_bound = index[2] - radius
+
+    filtered_neighbour_indexes = [
+        (demand_point, x_lower_bound + x, y_lower_bound + y, index[3])
+        for demand_point in range(index[0] - 2 * radius * 64, index[0] + 2 * radius * 64)
+        for x in range(2 * radius + 1)
+        for y in range(2 * radius + 1)
+        if (index[0], x, y, index[3]) != index
+    ]
+    return filtered_neighbour_indexes
+
+
+def compute_neighbour(index, dataframe, radius):
+    neighbour_indexes = get_neighbour(index.name, radius)
+    neighbour_df = dataframe.loc[list(set(neighbour_indexes).intersection(dataframe.index)), :]
+    return [neighbour_df.mean(), neighbour_df.min(), neighbour_df.max(), neighbour_df.std()]
+
+
 def train_model_with_cross_validation(demand_history_df: pd.DataFrame, forecast_horizon: List[int]) -> TrainingResult:
-    # TODO: Use constant after rebasing
     full_stacked_df = feature_engineering(demand_history_df)
 
     stacked_demand_history_test_df, stacked_demand_history_train_df = custom_train_test_split(
@@ -36,6 +55,10 @@ def train_model_with_cross_validation(demand_history_df: pd.DataFrame, forecast_
         DEMAND_HISTORY_Y_COORDINATE_COLUMN_NAME,
         YEAR_INDEX_COLUMN_NAME,
         "value_2_years_ago",
+        "neighbour_mean",
+        "neighbour_max",
+        "neighbour_min",
+        "neighbour_std",
     ]
     target_column = ["value"]
 
@@ -78,7 +101,6 @@ def train_model_with_cross_validation(demand_history_df: pd.DataFrame, forecast_
         verbose=2,
     )
     rf_cv.fit(X_train, y_train)
-    print(f"Best Parameters resulting from GridSearch:\n{rf_cv.best_params_}")
 
     best_pipe = pipe.set_params(**rf_cv.best_params_).fit(X_train, y_train)
 
@@ -151,7 +173,18 @@ def feature_engineering(demand_history_df: pd.DataFrame, mode: str = "training")
     one_year_shifted = stacked_demand_history_df.copy()
     one_year_shifted.index = pd.MultiIndex.from_tuples(last_year_index, names=stacked_demand_history_df.index.names)
     one_year_shifted.columns = ["value_2_years_ago"]
-    full_stacked_df = pd.concat([stacked_demand_history_df, one_year_shifted], axis=1)
+
+    neighbour_df = one_year_shifted.copy()
+    computed_features = np.array(
+        one_year_shifted.progress_apply(lambda x: compute_neighbour(x, one_year_shifted, 2), axis=1).values.tolist()
+    )
+    neighbour_df["neighbour_mean"] = computed_features[:, 0]
+    neighbour_df["neighbour_min"] = computed_features[:, 1]
+    neighbour_df["neighbour_max"] = computed_features[:, 2]
+    neighbour_df["neighbour_std"] = computed_features[:, 3]
+    neighbour_df["neighbour_std"] = neighbour_df["neighbour_std"].fillna(0)
+
+    full_stacked_df = pd.concat([stacked_demand_history_df, neighbour_df], axis=1)
     if mode == "training":
         full_stacked_df = full_stacked_df.dropna(how="any")
     full_stacked_df = full_stacked_df.reset_index()
@@ -187,6 +220,10 @@ def forecast(demand_df: pd.DataFrame, forecast_horizon: List[int], forecaster: T
 
 
 if __name__ == "__main__":
+    from tqdm import tqdm
+
+    tqdm.pandas()
+
     data_path = Path(__file__).parent.parent.parent / "data"
     result_path = data_path / "result"
 
@@ -216,7 +253,7 @@ if __name__ == "__main__":
 
     data_model = create_data_model(demand_forecast, demand_history, existing_infrastructure, data_path)
 
-    all_years_result = apply_scip_optimizer(data_model, show_output=True, gap_limit=0.0, limit_in_time=10 * 60)
+    all_years_result = apply_scip_optimizer(data_model, show_output=True, gap_limit=0.0, limit_in_time=10 * 60 * 1000)
 
     # --------------------------------- #
     #             Submission            #
