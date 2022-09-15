@@ -114,8 +114,7 @@ def summarize_optimization_output(all_years_results: List[Result], data_model: D
         scs_evolution_string = " -> ".join(map(str_convertor, scs_values))
         fcs_evolution_string = " -> ".join(map(str_convertor, fcs_values))
         logger.info(
-            "\n",
-            f"Supply point index: {str(supply_point_index)}:\n"
-            f"\t{SLOW_CHARGING_STATION_TAG}: {scs_evolution_string}\n"
-            f"\t{FAST_CHARGING_STATION_TAG}: {fcs_evolution_string}",
+            f"Supply point index: {str(supply_point_index)}:"
+            f"{SLOW_CHARGING_STATION_TAG}-[{scs_evolution_string}]  "
+            f"{FAST_CHARGING_STATION_TAG}-[{fcs_evolution_string}]  ",
         )

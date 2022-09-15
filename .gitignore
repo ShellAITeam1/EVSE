@@ -106,5 +106,6 @@ ENV/
 .idea/
 
 # Data
+data/result/*.csv
 data/*.csv
 data/*.pickle

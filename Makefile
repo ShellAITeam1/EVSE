@@ -32,4 +32,4 @@ unit-tests-cov:
 	poetry run pytest tests -s --cov-append --doctest-modules --junitxml=$(OUTPUT_DIR)/junit/unit-tests-results.xml --cov=degas_sci --cov-report=xml:$(OUTPUT_DIR)/coverage.xml --cov-report=html:$(OUTPUT_DIR)/htmlcov
 
 text-unit-tests-cov:
-	poetry run pytest --cache-clear --cov=app tests/ > $(OUTPUT_DIR)/pytest-coverage.txt
+	poetry run pytest --cache-clear --cov=evse -vvv tests/ > $(OUTPUT_DIR)/pytest-coverage.txt
