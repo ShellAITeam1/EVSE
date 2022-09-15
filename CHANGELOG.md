@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v0.3.0 (2022-09-15)
+### Feature
+* Evse 007 generalized model ([#4](https://github.com/ShellAITeam1/EVSE/issues/4)) ([`e246b38`](https://github.com/ShellAITeam1/EVSE/commit/e246b3876b620d40c0291acfff32c50d861a1544))
+
 ## v0.2.0 (2022-09-13)
 ### Feature
 * EVSE-002 try one year optimisation ([#2](https://github.com/ShellAITeam1/EVSE/issues/2)) ([`7323542`](https://github.com/ShellAITeam1/EVSE/commit/7323542f6268bab1d29619255cb1a3e0fb2ef287))

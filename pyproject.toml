@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "evse"
-version = "0.2.0"
+version = "0.3.0"
 description = "Work from TotalEnergies team 1 on the EV charlenge proposed by Shell: https://www.hackerearth.com/en-us/challenges/competitive/shellai-hackathon-2022"
 authors = ["Shell AI team 1"]
 
