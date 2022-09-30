@@ -56,7 +56,9 @@ class EVSEDataModel:
 
 
 def extract_distance_matrix(
-    demand_history_df: pd.DataFrame, existing_infrastructure_df: pd.DataFrame, saving_path
+    demand_history_df: pd.DataFrame,
+    existing_infrastructure_df: pd.DataFrame,
+    saving_path,
 ) -> Dict:
     distance_matrix_path = saving_path / "distance_matrix.pickle"
     if distance_matrix_path.is_file():
@@ -68,10 +70,20 @@ def extract_distance_matrix(
             for supply_point_index in existing_infrastructure_df[SUPPLY_POINT_INDEX_COLUMN_NAME].unique():
                 current_demand_coordinate = demand_history_df[
                     demand_history_df[DEMAND_POINT_INDEX_COLUMN_NAME] == demand_point_index
-                ][[DEMAND_HISTORY_X_COORDINATE_COLUMN_NAME, DEMAND_HISTORY_Y_COORDINATE_COLUMN_NAME]].values
+                ][
+                    [
+                        DEMAND_HISTORY_X_COORDINATE_COLUMN_NAME,
+                        DEMAND_HISTORY_Y_COORDINATE_COLUMN_NAME,
+                    ]
+                ].values
                 current_supply_coordinate = existing_infrastructure_df[
                     existing_infrastructure_df[SUPPLY_POINT_INDEX_COLUMN_NAME] == supply_point_index
-                ][[DEMAND_HISTORY_X_COORDINATE_COLUMN_NAME, DEMAND_HISTORY_Y_COORDINATE_COLUMN_NAME]].values
+                ][
+                    [
+                        DEMAND_HISTORY_X_COORDINATE_COLUMN_NAME,
+                        DEMAND_HISTORY_Y_COORDINATE_COLUMN_NAME,
+                    ]
+                ].values
                 distance_matrix[demand_point_index, supply_point_index] = np.sqrt(
                     np.sum((current_demand_coordinate - current_supply_coordinate) ** 2)
                 )
@@ -138,7 +150,9 @@ def extract_demand_forecast(demand_history_df: pd.DataFrame, years_list: List[in
     }
 
 
-def extract_supply_point_index_lower_capacities(existing_infrastructure: pd.DataFrame) -> Dict:
+def extract_supply_point_index_lower_capacities(
+    existing_infrastructure: pd.DataFrame,
+) -> Dict:
     mapping_scs_fcs_columns = {
         SLOW_CHARGING_STATION_TAG: "existing_num_SCS",
         FAST_CHARGING_STATION_TAG: "existing_num_FCS",

@@ -25,7 +25,11 @@ from evse.scoring import Result
 MAX_INCREASING_CAPACITIES = 100
 
 
-def main(data_model: DataModel, limit_in_time: Optional[int] = None, show_output: bool = False) -> List[Result]:
+def main(
+    data_model: DataModel,
+    limit_in_time: Optional[int] = None,
+    show_output: bool = False,
+) -> List[Result]:
     # Create the mip solver with the SCIP backend.
     logger.info("Create the mip solver with the SCIP backend")
     solver = pywraplp.Solver("my_model", pywraplp.Solver.SCIP_MIXED_INTEGER_PROGRAMMING)
@@ -42,18 +46,26 @@ def main(data_model: DataModel, limit_in_time: Optional[int] = None, show_output
     demand_supply = create_demand_supply_variable(data_model, solver)
 
     logger.info("Initializing Variables: supply_point_index_capacities")
-    supply_point_index_capacities = create_supply_point_index_capacities_variable(data_model, solver)
+    supply_point_index_capacities = create_supply_point_index_capacities_variable(
+        data_model, solver
+    )
 
     # Constraints
     logger.info("Setting Constraints")
     add_demand_supply_positive_or_null_constraint()
     add_number_of_charging_station_is_non_null_positive_integer()
-    add_parking_slot_per_supply_point_index_constraint(data_model, solver, supply_point_index_capacities)
-    add_incremental_ev_infrastructure_constraint(data_model, solver, supply_point_index_capacities)
+    add_parking_slot_per_supply_point_index_constraint(
+        data_model, solver, supply_point_index_capacities
+    )
+    add_incremental_ev_infrastructure_constraint(
+        data_model, solver, supply_point_index_capacities
+    )
     add_demand_point_delivery_should_be_less_than_capacity_constraint(
         data_model, demand_supply, solver, supply_point_index_capacities
     )
-    add_demand_point_partition_over_all_supply_point_constraint(data_model, demand_supply, solver)
+    add_demand_point_partition_over_all_supply_point_constraint(
+        data_model, demand_supply, solver
+    )
 
     logger.info("Setting Objective Function")
     solver.Minimize(
@@ -61,12 +73,17 @@ def main(data_model: DataModel, limit_in_time: Optional[int] = None, show_output
             [
                 solver.Sum(
                     compute_customer_dissatisfaction(
-                        data_model.distance_matrix, demand_supply, data_model.demand_forecast, data_model.years_list
+                        data_model.distance_matrix,
+                        demand_supply,
+                        data_model.demand_forecast,
+                        data_model.years_list,
                     )
                 ),
                 solver.Sum(
                     compute_cost_of_infrastructure(
-                        supply_point_index_capacities, data_model.years_list, data_model.supply_point_indexes
+                        supply_point_index_capacities,
+                        data_model.years_list,
+                        data_model.supply_point_indexes,
                     )
                 ),
             ]
@@ -77,7 +94,9 @@ def main(data_model: DataModel, limit_in_time: Optional[int] = None, show_output
     logger.info("Start Solving")
     status = solver.Solve()
 
-    all_years_results = compute_all_years_results(status, demand_supply, supply_point_index_capacities, data_model)
+    all_years_results = compute_all_years_results(
+        status, demand_supply, supply_point_index_capacities, data_model
+    )
 
     if show_output and len(all_years_results) > 0:
         summarize_optimization_output(all_years_results, data_model)
@@ -101,7 +120,10 @@ def add_demand_point_partition_over_all_supply_point_constraint(
 
 
 def add_demand_point_delivery_should_be_less_than_capacity_constraint(
-    data_model: DataModel, demand_supply: Dict, solver: pywraplp.Solver, supply_point_index_capacities: Dict
+    data_model: DataModel,
+    demand_supply: Dict,
+    solver: pywraplp.Solver,
+    supply_point_index_capacities: Dict,
 ) -> None:
     # (Sum of fractional) Demand satisfied by each jth supply point must be less than or
     # equal to the maximum supply available.
@@ -110,9 +132,13 @@ def add_demand_point_delivery_should_be_less_than_capacity_constraint(
             solver.Add(
                 (
                     data_model.scs_capacity
-                    * supply_point_index_capacities[year, SLOW_CHARGING_STATION_TAG, supply_point_index]
+                    * supply_point_index_capacities[
+                        year, SLOW_CHARGING_STATION_TAG, supply_point_index
+                    ]
                     + data_model.fcs_capacity
-                    * supply_point_index_capacities[year, FAST_CHARGING_STATION_TAG, supply_point_index]
+                    * supply_point_index_capacities[
+                        year, FAST_CHARGING_STATION_TAG, supply_point_index
+                    ]
                 )
                 >= sum(
                     demand_supply[(year, demand_point_index, supply_point_index)]
@@ -144,8 +170,12 @@ def add_incremental_ev_infrastructure_constraint(
             for supply_point_index in data_model.supply_point_indexes:
                 solver.Add(
                     (
-                        supply_point_index_capacities[(year - 1, charging_stations, supply_point_index)]
-                        <= supply_point_index_capacities[(year, charging_stations, supply_point_index)]
+                        supply_point_index_capacities[
+                            (year - 1, charging_stations, supply_point_index)
+                        ]
+                        <= supply_point_index_capacities[
+                            (year, charging_stations, supply_point_index)
+                        ]
                     )
                 )
 
@@ -159,22 +189,37 @@ def add_parking_slot_per_supply_point_index_constraint(
         for supply_point_index in data_model.supply_point_indexes:
             solver.Add(
                 sum(
-                    supply_point_index_capacities[year, charging_stations, supply_point_index]
-                    for charging_stations in [SLOW_CHARGING_STATION_TAG, FAST_CHARGING_STATION_TAG]
+                    supply_point_index_capacities[
+                        year, charging_stations, supply_point_index
+                    ]
+                    for charging_stations in [
+                        SLOW_CHARGING_STATION_TAG,
+                        FAST_CHARGING_STATION_TAG,
+                    ]
                 )
                 <= data_model.total_parking_slots[supply_point_index]
             )
 
 
-def create_supply_point_index_capacities_variable(data_model: DataModel, solver: pywraplp.Solver) -> Dict:
+def create_supply_point_index_capacities_variable(
+    data_model: DataModel, solver: pywraplp.Solver
+) -> Dict:
     supply_point_index_capacities = {}
     for year in data_model.years_list:
         for charging_stations in [SLOW_CHARGING_STATION_TAG, FAST_CHARGING_STATION_TAG]:
             for supply_point_index in data_model.supply_point_indexes:
-                supply_point_index_capacities[(year, charging_stations, supply_point_index)] = solver.IntVar(
-                    int(data_model.supply_point_index_low_capacities[charging_stations, supply_point_index]),
+                supply_point_index_capacities[
+                    (year, charging_stations, supply_point_index)
+                ] = solver.IntVar(
                     int(
-                        data_model.supply_point_index_low_capacities[charging_stations, supply_point_index]
+                        data_model.supply_point_index_low_capacities[
+                            charging_stations, supply_point_index
+                        ]
+                    ),
+                    int(
+                        data_model.supply_point_index_low_capacities[
+                            charging_stations, supply_point_index
+                        ]
                         + MAX_INCREASING_CAPACITIES
                     ),
                     f"supply_point_index_capacities_{year}_{charging_stations}_{supply_point_index}",
@@ -182,15 +227,21 @@ def create_supply_point_index_capacities_variable(data_model: DataModel, solver:
     return supply_point_index_capacities
 
 
-def create_demand_supply_variable(data_model: DataModel, solver: pywraplp.Solver) -> Dict:
+def create_demand_supply_variable(
+    data_model: DataModel, solver: pywraplp.Solver
+) -> Dict:
     # demand_supply[demand_point_index, supply_point_index] = proportion of demand at
     # demand_index satisfied by supply at supply_index
     demand_supply = {}
     for year in data_model.years_list:
         for demand_point_index in data_model.demand_point_indexes:
             for supply_point_index in data_model.supply_point_indexes:
-                demand_supply[(year, demand_point_index, supply_point_index)] = solver.NumVar(
-                    0, 1, f"demand_supply_{year}_{demand_point_index}_{supply_point_index}"
+                demand_supply[
+                    (year, demand_point_index, supply_point_index)
+                ] = solver.NumVar(
+                    0,
+                    1,
+                    f"demand_supply_{year}_{demand_point_index}_{supply_point_index}",
                 )
     return demand_supply
 
@@ -204,7 +255,9 @@ if __name__ == "__main__":
     demand_forecast["2019"] = demand_forecast["2018"] * 1.1
     demand_forecast["2020"] = demand_forecast["2019"] * 1.15
     demand_forecast = demand_forecast[[DEMAND_POINT_INDEX_COLUMN_NAME, "2019", "2020"]]
-    existing_infrastructure: pd.DataFrame = pd.read_csv(data_path / "exisiting_EV_infrastructure_2018.csv")
+    existing_infrastructure: pd.DataFrame = pd.read_csv(
+        data_path / "exisiting_EV_infrastructure_2018.csv"
+    )
 
     # restricted_demand_point = range(1000)#np.random.choice(demand_forecast[DEMAND_POINT_INDEX_COLUMN_NAME], 400)
     # restricted_supply_point = range(20)# np.random.choice(existing_infrastructure[SUPPLY_POINT_INDEX_COLUMN_NAME], 10)
@@ -218,7 +271,9 @@ if __name__ == "__main__":
     #     existing_infrastructure[SUPPLY_POINT_INDEX_COLUMN_NAME].isin(restricted_supply_point)
     # ]
 
-    data_model = create_data_model(demand_forecast, demand_history, existing_infrastructure, data_path)
+    data_model = create_data_model(
+        demand_forecast, demand_history, existing_infrastructure, data_path
+    )
 
     # data_model.distance_matrix = {
     #     key: value for key, value in data_model.distance_matrix.items()

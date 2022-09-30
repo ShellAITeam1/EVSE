@@ -43,3 +43,12 @@ CAP_FCS = 400
 CUSTOMER_DISSATISFACTION_LOSS_COEFFICIENT = 1
 DEMAND_MISMATCH_LOSS_COEFFICIENT = 25
 INFRASTRUCTURES_GROWTH_LOSS_COEFFICIENT = 600
+
+
+# Forecasters
+RFR = {"cv": True, "name": "RandomForestRegressor"}
+SPL = {"cv": False, "name": "Spline"}
+SPD = {"cv": False, "name": "SplinePerDemand"}
+
+
+

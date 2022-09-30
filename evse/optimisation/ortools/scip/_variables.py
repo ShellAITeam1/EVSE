@@ -30,7 +30,9 @@ def create_demand_supply_variable(data_model: DataModel, solver: pywraplp.Solver
         for demand_point_index in data_model.demand_point_indexes:
             for supply_point_index in data_model.supply_point_indexes:
                 demand_supply[(year, demand_point_index, supply_point_index)] = solver.NumVar(
-                    0.00000001, 1, f"demand_supply_{year}_{demand_point_index}_{supply_point_index}"
+                    0.00000001,
+                    1,
+                    f"demand_supply_{year}_{demand_point_index}_{supply_point_index}",
                 )
     return demand_supply
 

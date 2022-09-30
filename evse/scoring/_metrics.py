@@ -34,7 +34,8 @@ def compute_demand_mismatch_cost_over_years(
 
 
 def compute_cost_of_infrastructures_on_one_year(
-    slow_charging_stations_on_supply_point_matrix: np.array, fast_charging_stations_on_supply_point_matrix: np.array
+    slow_charging_stations_on_supply_point_matrix: np.array,
+    fast_charging_stations_on_supply_point_matrix: np.array,
 ) -> float:
     cost_of_infrastructures_on_one_year = np.sum(
         slow_charging_stations_on_supply_point_matrix
@@ -48,11 +49,13 @@ def compute_cost_of_infrastructures_over_years(
     fast_charging_stations_on_supply_point_matrix_list: List[np.array],
 ) -> float:
     all_year_compute_cost_of_infrastructures = []
-    for slow_charging_stations_on_supply_point_matrix, fast_charging_stations_on_supply_point_matrix in zip(
-        slow_charging_stations_on_supply_point_matrix_list, fast_charging_stations_on_supply_point_matrix_list
+    for (slow_charging_stations_on_supply_point_matrix, fast_charging_stations_on_supply_point_matrix,) in zip(
+        slow_charging_stations_on_supply_point_matrix_list,
+        fast_charging_stations_on_supply_point_matrix_list,
     ):
         yearly_cost = compute_cost_of_infrastructures_on_one_year(
-            slow_charging_stations_on_supply_point_matrix, fast_charging_stations_on_supply_point_matrix
+            slow_charging_stations_on_supply_point_matrix,
+            fast_charging_stations_on_supply_point_matrix,
         )
         all_year_compute_cost_of_infrastructures.append(yearly_cost)
     return sum(all_year_compute_cost_of_infrastructures)

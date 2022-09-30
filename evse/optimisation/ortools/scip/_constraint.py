@@ -22,7 +22,10 @@ def add_demand_point_partition_over_all_supply_point_constraint(
 
 
 def add_demand_point_delivery_should_be_less_than_capacity_constraint(
-    data_model: DataModel, demand_supply: Dict, solver: pywraplp.Solver, supply_point_index_capacities: Dict
+    data_model: DataModel,
+    demand_supply: Dict,
+    solver: pywraplp.Solver,
+    supply_point_index_capacities: Dict,
 ) -> None:
     # (Sum of fractional) Demand satisfied by each jth supply point must be less than or
     # equal to the maximum supply available.
@@ -82,7 +85,10 @@ def add_parking_slot_per_supply_point_index_constraint(
             solver.Add(
                 sum(
                     supply_point_index_capacities[year, charging_stations, supply_point_index]
-                    for charging_stations in [SLOW_CHARGING_STATION_TAG, FAST_CHARGING_STATION_TAG]
+                    for charging_stations in [
+                        SLOW_CHARGING_STATION_TAG,
+                        FAST_CHARGING_STATION_TAG,
+                    ]
                 )
                 <= data_model.total_parking_slots[supply_point_index]
             )

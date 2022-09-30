@@ -12,7 +12,10 @@ from ..const import (
 
 
 def compute_customer_dissatisfaction(
-    distance_matrix: Dict, demand_supply: Dict, demand_forecast: Dict, year_list: List[int]
+    distance_matrix: Dict,
+    demand_supply: Dict,
+    demand_forecast: Dict,
+    year_list: List[int],
 ) -> List[ProductCst]:
     distance_by_demand = [
         CUSTOMER_DISSATISFACTION_LOSS_COEFFICIENT
@@ -27,7 +30,9 @@ def compute_customer_dissatisfaction(
 
 
 def compute_cost_of_infrastructure(
-    supply_point_index_capacities: Dict, years_list: List[int], supply_point_indexes: List[int]
+    supply_point_index_capacities: Dict,
+    years_list: List[int],
+    supply_point_indexes: List[int],
 ) -> List[ProductCst]:
     total_capacities = []
     for year in years_list:

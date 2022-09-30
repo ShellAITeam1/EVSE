@@ -13,22 +13,36 @@ from sklearn.preprocessing import MinMaxScaler
 from evse.const import YEAR_INDEX_COLUMN_NAME
 
 
-def train_forecast(demand_history_df: pd.DataFrame, forecast_horizon: List[int]) -> pd.DataFrame:
+def train_forecast(
+    demand_history_df: pd.DataFrame, forecast_horizon: List[int]
+) -> pd.DataFrame:
     # TODO: Use constant after rebasing
     stacked_demand_history_df = demand_history_df.set_index(
         ["demand_point_index", "x_coordinate", "y_coordinate"]
     ).stack(0)
-    stacked_demand_history_df.index.names = ["demand_point_index", "x_coordinate", "y_coordinate", "year"]
+    stacked_demand_history_df.index.names = [
+        "demand_point_index",
+        "x_coordinate",
+        "y_coordinate",
+        "year",
+    ]
     stacked_demand_history_df.name = "value"
     stacked_demand_history_df = stacked_demand_history_df.to_frame()
     last_year_index = list(
         map(
-            lambda index_tuple: (index_tuple[0], index_tuple[1], index_tuple[2], str(int(index_tuple[3]) + 2)),
+            lambda index_tuple: (
+                index_tuple[0],
+                index_tuple[1],
+                index_tuple[2],
+                str(int(index_tuple[3]) + 2),
+            ),
             stacked_demand_history_df.index.values,
         )
     )
     one_year_shifted = stacked_demand_history_df.copy()
-    one_year_shifted.index = pd.MultiIndex.from_tuples(last_year_index, names=stacked_demand_history_df.index.names)
+    one_year_shifted.index = pd.MultiIndex.from_tuples(
+        last_year_index, names=stacked_demand_history_df.index.names
+    )
     one_year_shifted.columns = ["value_last_year"]
 
     def get_neighbour(index, radius):
@@ -37,7 +51,9 @@ def train_forecast(demand_history_df: pd.DataFrame, forecast_horizon: List[int])
 
         filtered_neighbour_indexes = [
             (demand_point, x_lower_bound + x, y_lower_bound + y, index[3])
-            for demand_point in range(index[0] - 2 * radius * 64, index[0] + 2 * radius * 64)
+            for demand_point in range(
+                index[0] - 2 * radius * 64, index[0] + 2 * radius * 64
+            )
             for x in range(2 * radius + 1)
             for y in range(2 * radius + 1)
             if (index[0], x, y, index[3]) != index
@@ -46,12 +62,21 @@ def train_forecast(demand_history_df: pd.DataFrame, forecast_horizon: List[int])
 
     def compute_neighbour(index, dataframe, radius):
         neighbour_indexes = get_neighbour(index.name, radius)
-        neighbour_df = dataframe.loc[list(set(neighbour_indexes).intersection(dataframe.index)), :]
-        return [neighbour_df.mean(), neighbour_df.min(), neighbour_df.max(), neighbour_df.std()]
+        neighbour_df = dataframe.loc[
+            list(set(neighbour_indexes).intersection(dataframe.index)), :
+        ]
+        return [
+            neighbour_df.mean(),
+            neighbour_df.min(),
+            neighbour_df.max(),
+            neighbour_df.std(),
+        ]
 
     neighbour_df = one_year_shifted.copy()
     computed_features = np.array(
-        one_year_shifted.progress_apply(lambda x: compute_neighbour(x, one_year_shifted, 1), axis=1).values.tolist()
+        one_year_shifted.progress_apply(
+            lambda x: compute_neighbour(x, one_year_shifted, 1), axis=1
+        ).values.tolist()
     )
     neighbour_df["neighbour_mean"] = computed_features[:, 0]
     neighbour_df["neighbour_min"] = computed_features[:, 1]
@@ -59,16 +84,22 @@ def train_forecast(demand_history_df: pd.DataFrame, forecast_horizon: List[int])
     neighbour_df["neighbour_std"] = computed_features[:, 3]
     neighbour_df["neighbour_std"] = neighbour_df["neighbour_std"].fillna(0)
 
-    full_stacked_df = pd.concat([stacked_demand_history_df, neighbour_df], axis=1).dropna(how="any")
+    full_stacked_df = pd.concat(
+        [stacked_demand_history_df, neighbour_df], axis=1
+    ).dropna(how="any")
     full_stacked_df = full_stacked_df.reset_index()
-    full_stacked_df[YEAR_INDEX_COLUMN_NAME] = full_stacked_df[YEAR_INDEX_COLUMN_NAME].astype(int)
+    full_stacked_df[YEAR_INDEX_COLUMN_NAME] = full_stacked_df[
+        YEAR_INDEX_COLUMN_NAME
+    ].astype(int)
 
     stacked_demand_history_train_df = full_stacked_df[
         full_stacked_df[YEAR_INDEX_COLUMN_NAME].isin(
             set(full_stacked_df[YEAR_INDEX_COLUMN_NAME]).difference(forecast_horizon)
         )
     ]
-    stacked_demand_history_test_df = full_stacked_df[full_stacked_df[YEAR_INDEX_COLUMN_NAME].isin(forecast_horizon)]
+    stacked_demand_history_test_df = full_stacked_df[
+        full_stacked_df[YEAR_INDEX_COLUMN_NAME].isin(forecast_horizon)
+    ]
 
     predictor_columns = [
         "x_coordinate",
@@ -114,20 +145,28 @@ def train_forecast(demand_history_df: pd.DataFrame, forecast_horizon: List[int])
         groups=groups,
         return_estimator=True,
     )
-    train_pred = pd.Series(scores.get("estimator")[0].predict(X_train), index=y_train.index)
+    train_pred = pd.Series(
+        scores.get("estimator")[0].predict(X_train), index=y_train.index
+    )
     print(mean_absolute_error(train_pred, y_train))
 
     X_test = feature_space_pipe.transform(stacked_demand_history_test_df)
     y_test = np.log1p(stacked_demand_history_test_df["value"])
-    test_pred = pd.Series(scores.get("estimator")[0].predict(X_test), index=y_test.index)
+    test_pred = pd.Series(
+        scores.get("estimator")[0].predict(X_test), index=y_test.index
+    )
     print(mean_absolute_error(test_pred, y_test))
 
     original_y_test = stacked_demand_history_test_df["value"]
-    exp_test_pred = pd.Series(np.exp(scores.get("estimator")[0].predict(X_test)), index=y_test.index)
+    exp_test_pred = pd.Series(
+        np.exp(scores.get("estimator")[0].predict(X_test)), index=y_test.index
+    )
     print(mean_absolute_error(exp_test_pred, original_y_test))
     pred = stacked_demand_history_test_df.copy()
     pred["pred"] = exp_test_pred
-    pred = pred.set_index(["demand_point_index", "x_coordinate", "y_coordinate", "year"])
+    pred = pred.set_index(
+        ["demand_point_index", "x_coordinate", "y_coordinate", "year"]
+    )
 
     forecast_df = pd.DataFrame()
     return forecast_df
