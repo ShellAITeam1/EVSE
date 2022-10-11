@@ -1,22 +1,17 @@
-from typing import Literal, List, Tuple, Union
+from typing import Literal, Union
 
 import numpy as np
 import pandas as pd
-from pandas import DataFrame
-from scipy.interpolate import interp1d, UnivariateSpline
+from scipy.interpolate import UnivariateSpline, interp1d
 from sklearn.base import BaseEstimator, ClassifierMixin, TransformerMixin
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.utils.validation import check_is_fitted
 
-
 from evse.const import (
     DEMAND_HISTORY_X_COORDINATE_COLUMN_NAME,
     DEMAND_HISTORY_Y_COORDINATE_COLUMN_NAME,
-    DEMAND_POINT_INDEX_COLUMN_NAME,
     RFR,
     SPL,
-    SPD,
-    VALUE_COLUMN_NAME,
     YEAR_INDEX_COLUMN_NAME,
 )
 
@@ -25,8 +20,8 @@ def forecaster_estimator(forecaster: Literal[RFR, SPL], **kwargs) -> BaseEstimat
     """Returns the chosen forecaster"""
     if forecaster == RFR:
         return RandomForestRegressor(
-            **{'max_depth': 30, 'max_features': 'sqrt', 'n_estimators': 200, 'random_state': 42}
-    )
+            **{"max_depth": 30, "max_features": "sqrt", "n_estimators": 200, "random_state": 42}
+        )
     if forecaster == SPL:
         return SplineEstimator(**kwargs)
 
@@ -40,12 +35,7 @@ class SplineEstimator(BaseEstimator, ClassifierMixin, TransformerMixin):
     def __init__(self, predictor_columns, weights=None):
         self.interpolater = UnivariateSpline
         if self.interpolater == UnivariateSpline:
-            self.kwargs = {
-                "w": weights,
-                "ext": "extrapolate",
-                "k": 2,
-                "s": 100
-            }
+            self.kwargs = {"w": weights, "ext": "extrapolate", "k": 2, "s": 100}
         if self.interpolater == interp1d:
             self.kwargs = {"fill_value": "extrapolate", "kind": "quadratic"}
         self.columns = predictor_columns
@@ -77,7 +67,7 @@ class SplineEstimator(BaseEstimator, ClassifierMixin, TransformerMixin):
         return self.transform(X, y)
 
     def transform(self, X, y=None):
-        return self.format_data(X).drop(columns=["y"]).assign(spline_forecast = self.predict(X))
+        return self.format_data(X).drop(columns=["y"]).assign(spline_forecast=self.predict(X))
 
     def predict(self, X: Union[pd.DataFrame, np.array]) -> np.array:
         """Predicts based on the trained model in one go"""

@@ -49,6 +49,3 @@ INFRASTRUCTURES_GROWTH_LOSS_COEFFICIENT = 600
 RFR = {"cv": True, "name": "RandomForestRegressor"}
 SPL = {"cv": False, "name": "Spline"}
 SPD = {"cv": False, "name": "SplinePerDemand"}
-
-
-
