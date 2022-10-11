@@ -24,27 +24,39 @@ class TestMetrics(unittest.TestCase):
         given_demand_supply_values_list = [np.zeros((3, 3)), np.zeros((3, 3))]
 
         # When
-        customer_dissatisfaction_cost_over_years = compute_customer_dissatisfaction_cost_over_years(
-            given_distance_matrix, given_demand_supply_values_list
+        customer_dissatisfaction_cost_over_years = (
+            compute_customer_dissatisfaction_cost_over_years(
+                given_distance_matrix, given_demand_supply_values_list
+            )
         )
 
         # Then
         expected_customer_dissatisfaction_cost_over_years = 0.0
-        assert expected_customer_dissatisfaction_cost_over_years == customer_dissatisfaction_cost_over_years
+        assert (
+            expected_customer_dissatisfaction_cost_over_years
+            == customer_dissatisfaction_cost_over_years
+        )
 
-    def test_compute_customer_dissatisfaction_cost_over_years_with_distance_non_null_and_demand_supply_null(self):
+    def test_compute_customer_dissatisfaction_cost_over_years_with_distance_non_null_and_demand_supply_null(
+        self,
+    ):
         # Given
         given_distance_matrix = np.ones((3, 3))
         given_demand_supply_values_list = [np.zeros((3, 3)), np.zeros((3, 3))]
 
         # When
-        customer_dissatisfaction_cost_over_years = compute_customer_dissatisfaction_cost_over_years(
-            given_distance_matrix, given_demand_supply_values_list
+        customer_dissatisfaction_cost_over_years = (
+            compute_customer_dissatisfaction_cost_over_years(
+                given_distance_matrix, given_demand_supply_values_list
+            )
         )
 
         # Then
         expected_customer_dissatisfaction_cost_over_years = 0.0
-        assert expected_customer_dissatisfaction_cost_over_years == customer_dissatisfaction_cost_over_years
+        assert (
+            expected_customer_dissatisfaction_cost_over_years
+            == customer_dissatisfaction_cost_over_years
+        )
 
     def test_compute_customer_dissatisfaction_cost_over_years(self):
         # Given
@@ -55,14 +67,17 @@ class TestMetrics(unittest.TestCase):
         ]
 
         # When
-        customer_dissatisfaction_cost_over_years = compute_customer_dissatisfaction_cost_over_years(
-            given_distance_matrix, given_demand_supply_values_list
+        customer_dissatisfaction_cost_over_years = (
+            compute_customer_dissatisfaction_cost_over_years(
+                given_distance_matrix, given_demand_supply_values_list
+            )
         )
 
         # Then
         expected_customer_dissatisfaction_cost_over_years = 36.4
         np.testing.assert_almost_equal(
-            expected_customer_dissatisfaction_cost_over_years, customer_dissatisfaction_cost_over_years
+            expected_customer_dissatisfaction_cost_over_years,
+            customer_dissatisfaction_cost_over_years,
         )
 
     def test_score_loss(self):
@@ -71,25 +86,33 @@ class TestMetrics(unittest.TestCase):
             YearlyResult(
                 year=2019,
                 slow_charging_stations_on_supply_point_matrix=pd.read_csv(
-                    self.data_path / "slow_charging_stations_on_supply_point_matrix_2019.csv"
+                    self.data_path
+                    / "slow_charging_stations_on_supply_point_matrix_2019.csv"
                 ),
                 fast_charging_stations_on_supply_point_matrix=pd.read_csv(
-                    self.data_path / "fast_charging_stations_on_supply_point_matrix_2019.csv"
+                    self.data_path
+                    / "fast_charging_stations_on_supply_point_matrix_2019.csv"
                 ),
                 demand_supply_matrix=pd.read_csv(
-                    self.data_path / "demand_supply_matrix_2019.csv", header=[0, 1], index_col=[0]
+                    self.data_path / "demand_supply_matrix_2019.csv",
+                    header=[0, 1],
+                    index_col=[0],
                 ),
             ),
             YearlyResult(
                 year=2020,
                 slow_charging_stations_on_supply_point_matrix=pd.read_csv(
-                    self.data_path / "slow_charging_stations_on_supply_point_matrix_2020.csv"
+                    self.data_path
+                    / "slow_charging_stations_on_supply_point_matrix_2020.csv"
                 ),
                 fast_charging_stations_on_supply_point_matrix=pd.read_csv(
-                    self.data_path / "fast_charging_stations_on_supply_point_matrix_2020.csv",
+                    self.data_path
+                    / "fast_charging_stations_on_supply_point_matrix_2020.csv",
                 ),
                 demand_supply_matrix=pd.read_csv(
-                    self.data_path / "demand_supply_matrix_2020.csv", header=[0, 1], index_col=[0]
+                    self.data_path / "demand_supply_matrix_2020.csv",
+                    header=[0, 1],
+                    index_col=[0],
                 ),
             ),
         ]

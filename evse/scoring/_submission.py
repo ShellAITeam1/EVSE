@@ -82,7 +82,8 @@ class YearlyResult:
 
 def get_scoring_dataframe(yearly_results: List[Result]) -> pd.DataFrame:
     all_years_df = pd.concat(
-        [yearly_result.build_yearly_submission_dataframe() for yearly_result in yearly_results], axis=0
+        [yearly_result.build_yearly_submission_dataframe() for yearly_result in yearly_results],
+        axis=0,
     )
     all_years_df = all_years_df[ORDERED_SUBMISSION_DATAFRAME_COLUMNS_NAME_LIST]
     all_years_df = (

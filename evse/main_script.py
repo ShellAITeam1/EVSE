@@ -18,7 +18,11 @@ def main(data_path: Path):
             fast_charging_stations_on_supply_point_matrix=pd.read_csv(
                 data_path / "fast_charging_stations_on_supply_point_matrix_2019.csv"
             ),
-            demand_supply_matrix=pd.read_csv(data_path / "demand_supply_matrix_2019.csv", header=[0, 1], index_col=[0]),
+            demand_supply_matrix=pd.read_csv(
+                data_path / "demand_supply_matrix_2019.csv",
+                header=[0, 1],
+                index_col=[0],
+            ),
         ),
         YearlyResult(
             year=2020,
@@ -28,7 +32,11 @@ def main(data_path: Path):
             fast_charging_stations_on_supply_point_matrix=pd.read_csv(
                 data_path / "fast_charging_stations_on_supply_point_matrix_2020.csv",
             ),
-            demand_supply_matrix=pd.read_csv(data_path / "demand_supply_matrix_2020.csv", header=[0, 1], index_col=[0]),
+            demand_supply_matrix=pd.read_csv(
+                data_path / "demand_supply_matrix_2020.csv",
+                header=[0, 1],
+                index_col=[0],
+            ),
         ),
     ]
 

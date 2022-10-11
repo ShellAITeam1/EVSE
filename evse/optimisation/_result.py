@@ -18,7 +18,10 @@ from evse.scoring import Result, YearlyResult, score_loss
 
 
 def compute_all_years_results(
-    status: int, demand_supply: Dict, supply_point_index_capacities: Dict, data_model: DataModel
+    status: int,
+    demand_supply: Dict,
+    supply_point_index_capacities: Dict,
+    data_model: DataModel,
 ) -> List[Result]:
     all_years_results: List[Result] = []
     if status == pywraplp.Solver.OPTIMAL or status == pywraplp.Solver.AT_LOWER_BOUND:

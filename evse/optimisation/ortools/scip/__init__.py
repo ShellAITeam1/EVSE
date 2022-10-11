@@ -28,7 +28,10 @@ from ._variables import (
 
 
 def apply_scip_optimizer(
-    data_model: DataModel, limit_in_time: Optional[int] = None, show_output: bool = False, gap_limit: float = 0.01
+    data_model: DataModel,
+    limit_in_time: Optional[int] = None,
+    show_output: bool = False,
+    gap_limit: float = 0.01,
 ) -> List[Result]:
     # Create the mip solver with the SCIP backend.
     logger.info("Create the mip solver with the SCIP backend")
@@ -69,12 +72,17 @@ def apply_scip_optimizer(
             [
                 solver.Sum(
                     compute_customer_dissatisfaction(
-                        data_model.distance_matrix, demand_supply, data_model.demand_forecast, data_model.years_list
+                        data_model.distance_matrix,
+                        demand_supply,
+                        data_model.demand_forecast,
+                        data_model.years_list,
                     )
                 ),
                 solver.Sum(
                     compute_cost_of_infrastructure(
-                        supply_point_index_capacities, data_model.years_list, data_model.supply_point_indexes
+                        supply_point_index_capacities,
+                        data_model.years_list,
+                        data_model.supply_point_indexes,
                     )
                 ),
             ]

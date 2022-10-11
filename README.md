@@ -30,7 +30,7 @@ Here are the steps to follow:
     # Verify that the CLI is accessible
     poetry --version
     # Verify that poetry is using the right python
-    poetry poetry env info
+    poetry env info
     # The virtual env should point to evse
     # The System's python should also point to evse
     ```
