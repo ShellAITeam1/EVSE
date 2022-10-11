@@ -6,8 +6,11 @@ import pandas as pd
 from scipy.interpolate import UnivariateSpline
 from sklearn.compose import ColumnTransformer
 from sklearn.ensemble import RandomForestRegressor
-from sklearn.linear_model import LinearRegression
-from sklearn.metrics import mean_absolute_error, mean_squared_error, mean_absolute_percentage_error
+from sklearn.metrics import (
+    mean_absolute_error,
+    mean_absolute_percentage_error,
+    mean_squared_error,
+)
 from sklearn.model_selection import GridSearchCV, GroupKFold
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import MinMaxScaler
@@ -18,14 +21,16 @@ from evse.const import (
     DEMAND_HISTORY_X_COORDINATE_COLUMN_NAME,
     DEMAND_HISTORY_Y_COORDINATE_COLUMN_NAME,
     DEMAND_POINT_INDEX_COLUMN_NAME,
+    SUPPLY_POINT_INDEX_COLUMN_NAME,
     VALUE_COLUMN_NAME,
-    YEAR_INDEX_COLUMN_NAME, SUPPLY_POINT_INDEX_COLUMN_NAME,
+    YEAR_INDEX_COLUMN_NAME,
 )
 from evse.forecast import ForecasterTrainingResult, TrainingResult
 from evse.optimisation import create_data_model
 from evse.optimisation._modelisation import extract_distance_matrix
 from evse.optimisation.ortools.scip import apply_scip_optimizer
 from evse.scoring import get_scoring_dataframe
+
 
 def get_neighbour(index, radius):
     x_lower_bound = index[1] - radius
@@ -47,9 +52,7 @@ def compute_neighbour(index, dataframe, radius):
     return [neighbour_df.mean(), neighbour_df.min(), neighbour_df.max(), neighbour_df.std()]
 
 
-def train_model_with_cross_validation(
-    full_stacked_df: pd.DataFrame, forecast_horizon: List[int]
-) -> TrainingResult:
+def train_model_with_cross_validation(full_stacked_df: pd.DataFrame, forecast_horizon: List[int]) -> TrainingResult:
     stacked_demand_history_test_df, stacked_demand_history_train_df = custom_train_test_split(
         forecast_horizon, full_stacked_df
     )
@@ -128,7 +131,6 @@ def train_model_with_cross_validation(
 
     best_pipe = pipe.set_params(**best_param).fit(X_train, y_train)
 
-
     print("Sample size: ", len(y_train))
     train_pred = pd.Series(best_pipe.predict(X_train) - 1, index=stacked_demand_history_train_df.index)
     print("Score on Train:", mean_absolute_error(train_pred, y_train))
@@ -200,9 +202,7 @@ def feature_engineering(
     if mode == "training":
         predictors = demand_history_df[
             demand_history_df.columns[demand_history_df.columns.isin([str(year) for year in range(2010, 2021)])]
-        ].apply(
-            fit_spline, axis=1
-        )
+        ].apply(fit_spline, axis=1)
     elif predictors is None:
         raise ValueError
 
@@ -272,8 +272,8 @@ def feature_engineering(
 
     top_k_min_per_demand_point_df = pd.concat(top_k_min_per_demand_point_list)
 
-    full_stacked_with_distance_df = pd.concat([
-        full_stacked_df.set_index(DEMAND_POINT_INDEX_COLUMN_NAME), top_k_min_per_demand_point_df], axis=1
+    full_stacked_with_distance_df = pd.concat(
+        [full_stacked_df.set_index(DEMAND_POINT_INDEX_COLUMN_NAME), top_k_min_per_demand_point_df], axis=1
     ).reset_index()
 
     full_stacked_with_distance_df["spline"] = full_stacked_with_distance_df.apply(
@@ -283,9 +283,7 @@ def feature_engineering(
     return full_stacked_with_distance_df, predictors
 
 
-def forecast(
-    full_stacked_df: pd.DataFrame, forecast_horizon: List[int], forecaster: TrainingResult
-) -> pd.DataFrame:
+def forecast(full_stacked_df: pd.DataFrame, forecast_horizon: List[int], forecaster: TrainingResult) -> pd.DataFrame:
     full_forecast_stacked_df = full_stacked_df[full_stacked_df[YEAR_INDEX_COLUMN_NAME].isin(forecast_horizon)]
 
     prediction_feature_space = forecaster.predictors_transformation_pipeline.transform(full_forecast_stacked_df)
@@ -318,10 +316,7 @@ def clusterize_demand_points(nb_cluster: int, mode: str = "normal") -> pd.DataFr
 
     km = TimeSeriesKMeans(n_clusters=nb_cluster, metric="dtw", max_iter=5, random_state=0).fit(X)
     group = km.predict(X)
-    group_df = pd.DataFrame({
-        DEMAND_POINT_INDEX_COLUMN_NAME: range(len(group)),
-        f"{mode}_group": group
-    })
+    group_df = pd.DataFrame({DEMAND_POINT_INDEX_COLUMN_NAME: range(len(group)), f"{mode}_group": group})
 
     return group_df
 
@@ -343,10 +338,13 @@ if __name__ == "__main__":
     normalized_group_df = clusterize_demand_points(nb_cluster=6, mode="normalized")
     normal_group_df = clusterize_demand_points(nb_cluster=5)
 
-    group_df = pd.concat([
-        normalized_group_df.set_index(DEMAND_POINT_INDEX_COLUMN_NAME),
-        normal_group_df.set_index(DEMAND_POINT_INDEX_COLUMN_NAME)
-    ], axis=1)
+    group_df = pd.concat(
+        [
+            normalized_group_df.set_index(DEMAND_POINT_INDEX_COLUMN_NAME),
+            normal_group_df.set_index(DEMAND_POINT_INDEX_COLUMN_NAME),
+        ],
+        axis=1,
+    )
     # --------------------------------- #
     #             Training              #
     # --------------------------------- #
@@ -366,8 +364,7 @@ if __name__ == "__main__":
         pred_list = []
         forecaster_training_results_dict[clustering_method] = {}
         for cluster_id in group_df[f"{clustering_method}_group"].unique():
-            cluster_demand_point = \
-                group_df[group_df[f"{clustering_method}_group"] == cluster_id].index.values
+            cluster_demand_point = group_df[group_df[f"{clustering_method}_group"] == cluster_id].index.values
             cluster_demand_history_df = feature_engineering_df[
                 feature_engineering_df[DEMAND_POINT_INDEX_COLUMN_NAME].isin(cluster_demand_point)
             ]
@@ -378,22 +375,33 @@ if __name__ == "__main__":
 
         full_pred = pd.concat(pred_list)
         all_clustering_preds.append(full_pred.sort_index())
-        print("Whole MAE:", mean_absolute_error(full_pred['value'], full_pred['pred']))
-        print("Whole MAPE:", mean_absolute_percentage_error(full_pred['value'], full_pred['pred']))
+        print("Whole MAE:", mean_absolute_error(full_pred["value"], full_pred["pred"]))
+        print("Whole MAPE:", mean_absolute_percentage_error(full_pred["value"], full_pred["pred"]))
 
-    all_clustering_preds_df = pd.DataFrame({
-        "value": all_clustering_preds[0].value,
-        "pred_normal": all_clustering_preds[0]["pred"].values,
-        "pred_normalized": all_clustering_preds[1]["pred"].values,
-        "pred_sqrt": np.sqrt(all_clustering_preds[0]["pred"].values * all_clustering_preds[1]["pred"].values),
-        "pred_mean": (all_clustering_preds[0]["pred"].values + all_clustering_preds[1]["pred"].values)/2
-    },
-        index=all_clustering_preds[0].index
+    all_clustering_preds_df = pd.DataFrame(
+        {
+            "value": all_clustering_preds[0].value,
+            "pred_normal": all_clustering_preds[0]["pred"].values,
+            "pred_normalized": all_clustering_preds[1]["pred"].values,
+            "pred_sqrt": np.sqrt(all_clustering_preds[0]["pred"].values * all_clustering_preds[1]["pred"].values),
+            "pred_mean": (all_clustering_preds[0]["pred"].values + all_clustering_preds[1]["pred"].values) / 2,
+        },
+        index=all_clustering_preds[0].index,
     ).droplevel(level=[1, 2])
-    print("Whole sqrt MAE:", mean_absolute_error(all_clustering_preds_df['value'], all_clustering_preds_df['pred_sqrt']))
-    print("Whole sqrt MAPE:", mean_absolute_percentage_error(all_clustering_preds_df['value'], all_clustering_preds_df['pred_sqrt']))
-    print("Whole mean MAE:", mean_absolute_error(all_clustering_preds_df['value'], all_clustering_preds_df['pred_mean']))
-    print("Whole mean MAPE:", mean_absolute_percentage_error(all_clustering_preds_df['value'], all_clustering_preds_df['pred_mean']))
+    print(
+        "Whole sqrt MAE:", mean_absolute_error(all_clustering_preds_df["value"], all_clustering_preds_df["pred_sqrt"])
+    )
+    print(
+        "Whole sqrt MAPE:",
+        mean_absolute_percentage_error(all_clustering_preds_df["value"], all_clustering_preds_df["pred_sqrt"]),
+    )
+    print(
+        "Whole mean MAE:", mean_absolute_error(all_clustering_preds_df["value"], all_clustering_preds_df["pred_mean"])
+    )
+    print(
+        "Whole mean MAPE:",
+        mean_absolute_percentage_error(all_clustering_preds_df["value"], all_clustering_preds_df["pred_mean"]),
+    )
 
     # --------------------------------- #
     #              Predict              #
@@ -409,30 +417,31 @@ if __name__ == "__main__":
     for clustering_method in ["normal", "normalized"]:
         forecast_df_list = []
         for cluster_id in group_df[f"{clustering_method}_group"].unique():
-            cluster_demand_point = \
-                group_df[group_df[f"{clustering_method}_group"] == cluster_id].index.values
+            cluster_demand_point = group_df[group_df[f"{clustering_method}_group"] == cluster_id].index.values
             cluster_demand_history_df = demand_history_engineered_df[
                 demand_history_engineered_df[DEMAND_POINT_INDEX_COLUMN_NAME].isin(cluster_demand_point)
             ]
             cluster_forecast_df = forecast(
                 cluster_demand_history_df,
                 forecast_horizon,
-                forecaster_training_results_dict[clustering_method][cluster_id]
+                forecaster_training_results_dict[clustering_method][cluster_id],
             )
-            # cluster_forecast_df[forecast_horizon] = overfitted_coeficient[clustering_method][cluster_id] * cluster_forecast_df[forecast_horizon]
+            # cluster_forecast_df[forecast_horizon] = \
+            # overfitted_coeficient[clustering_method][cluster_id] * cluster_forecast_df[forecast_horizon]
             forecast_df_list.append(cluster_forecast_df)
 
         forecast_df = pd.concat(forecast_df_list).sort_values(by=[DEMAND_POINT_INDEX_COLUMN_NAME])
         forecast_list.append(forecast_df)
 
-    all_forecast_df = pd.DataFrame({
-        **{DEMAND_POINT_INDEX_COLUMN_NAME: forecast_list[0][DEMAND_POINT_INDEX_COLUMN_NAME]},
-        **{
-            year: (
-                forecast_list[0][year].values + forecast_list[1][year].values
-            )/2 for year in forecast_list[0].columns.difference([DEMAND_POINT_INDEX_COLUMN_NAME])
+    all_forecast_df = pd.DataFrame(
+        {
+            **{DEMAND_POINT_INDEX_COLUMN_NAME: forecast_list[0][DEMAND_POINT_INDEX_COLUMN_NAME]},
+            **{
+                year: (forecast_list[0][year].values + forecast_list[1][year].values) / 2
+                for year in forecast_list[0].columns.difference([DEMAND_POINT_INDEX_COLUMN_NAME])
+            },
         }
-    })
+    )
 
     # --------------------------------- #
     #               Optim               #

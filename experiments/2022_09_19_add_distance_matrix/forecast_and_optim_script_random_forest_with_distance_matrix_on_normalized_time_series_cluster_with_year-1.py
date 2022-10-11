@@ -4,7 +4,11 @@ from typing import List, Tuple
 import pandas as pd
 from sklearn.compose import ColumnTransformer
 from sklearn.ensemble import RandomForestRegressor
-from sklearn.metrics import mean_absolute_error, mean_squared_error, mean_absolute_percentage_error
+from sklearn.metrics import (
+    mean_absolute_error,
+    mean_absolute_percentage_error,
+    mean_squared_error,
+)
 from sklearn.model_selection import GridSearchCV, GroupKFold
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import MinMaxScaler
@@ -15,8 +19,9 @@ from evse.const import (
     DEMAND_HISTORY_X_COORDINATE_COLUMN_NAME,
     DEMAND_HISTORY_Y_COORDINATE_COLUMN_NAME,
     DEMAND_POINT_INDEX_COLUMN_NAME,
+    SUPPLY_POINT_INDEX_COLUMN_NAME,
     VALUE_COLUMN_NAME,
-    YEAR_INDEX_COLUMN_NAME, SUPPLY_POINT_INDEX_COLUMN_NAME,
+    YEAR_INDEX_COLUMN_NAME,
 )
 from evse.forecast import ForecasterTrainingResult, TrainingResult
 from evse.optimisation import create_data_model
@@ -203,8 +208,8 @@ def feature_engineering(
 
     top_3_min_per_demand_point_df = pd.concat(top_3_min_per_demand_point_list)
 
-    full_stacked_with_distance_df = pd.concat([
-        full_stacked_df.set_index(DEMAND_POINT_INDEX_COLUMN_NAME), top_3_min_per_demand_point_df], axis=1
+    full_stacked_with_distance_df = pd.concat(
+        [full_stacked_df.set_index(DEMAND_POINT_INDEX_COLUMN_NAME), top_3_min_per_demand_point_df], axis=1
     ).reset_index()
 
     return full_stacked_with_distance_df
@@ -247,10 +252,7 @@ def clusterize_demand_points(nb_cluster: int, mode: str = "normal") -> pd.DataFr
 
     km = TimeSeriesKMeans(n_clusters=nb_cluster, metric="dtw", max_iter=5, random_state=0).fit(X)
     group = km.predict(X)
-    group_df = pd.DataFrame({
-        DEMAND_POINT_INDEX_COLUMN_NAME: range(len(group)),
-        f"{mode}_group": group
-    })
+    group_df = pd.DataFrame({DEMAND_POINT_INDEX_COLUMN_NAME: range(len(group)), f"{mode}_group": group})
 
     return group_df
 
@@ -290,8 +292,8 @@ if __name__ == "__main__":
         pred_list.append(pred)
 
     full_pred = pd.concat(pred_list).sort_index()
-    print("Whole MAE:", mean_absolute_error(full_pred['value'], full_pred['pred']))
-    print("Whole MAPE:", mean_absolute_percentage_error(full_pred['value'], full_pred['pred']))
+    print("Whole MAE:", mean_absolute_error(full_pred["value"], full_pred["pred"]))
+    print("Whole MAPE:", mean_absolute_percentage_error(full_pred["value"], full_pred["pred"]))
 
     # --------------------------------- #
     #              Predict              #
@@ -302,28 +304,38 @@ if __name__ == "__main__":
     for forecast_year in forecast_horizon:
         demand_history_for_forecast_df.columns = demand_history_for_forecast_df.columns.astype(str)
         demand_to_predict_df = demand_history_for_forecast_df[
-            ["demand_point_index", "x_coordinate", "y_coordinate"] + [str(forecast_year-year) for year in range(1, 3)]
-            ]
+            ["demand_point_index", "x_coordinate", "y_coordinate"] + [str(forecast_year - year) for year in range(1, 3)]
+        ]
 
         forecast_df_list = []
         for cluster_id in group_df["normal_group"].unique():
-            cluster_demand_point = group_df[group_df["normal_group"] == cluster_id][DEMAND_POINT_INDEX_COLUMN_NAME].values
+            cluster_demand_point = group_df[group_df["normal_group"] == cluster_id][
+                DEMAND_POINT_INDEX_COLUMN_NAME
+            ].values
             cluster_demand_history_df = demand_to_predict_df[
                 demand_to_predict_df[DEMAND_POINT_INDEX_COLUMN_NAME].isin(cluster_demand_point)
             ]
             cluster_forecast_df = forecast(
-                cluster_demand_history_df, distance_matrix_df, [forecast_year], forecaster_training_results_dict[cluster_id]
+                cluster_demand_history_df,
+                distance_matrix_df,
+                [forecast_year],
+                forecaster_training_results_dict[cluster_id],
             )
             forecast_df_list.append(cluster_forecast_df)
 
-        forecast_df = pd.concat(forecast_df_list).sort_values(by=[DEMAND_POINT_INDEX_COLUMN_NAME]).reset_index(drop=True)
+        forecast_df = (
+            pd.concat(forecast_df_list).sort_values(by=[DEMAND_POINT_INDEX_COLUMN_NAME]).reset_index(drop=True)
+        )
 
         forecast_year_list.append(forecast_df.set_index(DEMAND_POINT_INDEX_COLUMN_NAME))
 
-        demand_history_for_forecast_df = pd.concat([
-            demand_history_for_forecast_df.set_index(DEMAND_POINT_INDEX_COLUMN_NAME),
-            forecast_df.set_index(DEMAND_POINT_INDEX_COLUMN_NAME),
-        ], axis=1).reset_index()
+        demand_history_for_forecast_df = pd.concat(
+            [
+                demand_history_for_forecast_df.set_index(DEMAND_POINT_INDEX_COLUMN_NAME),
+                forecast_df.set_index(DEMAND_POINT_INDEX_COLUMN_NAME),
+            ],
+            axis=1,
+        ).reset_index()
 
     full_forecast_df = pd.concat(forecast_year_list, axis=1).sort_index().reset_index()
 

@@ -201,16 +201,13 @@ def forecast(demand_df: pd.DataFrame, forecast_horizon: List[int], forecaster: T
     return unstacked_predictions_df
 
 
-def clusterize_demand_points(nb_cluster:int) -> pd.DataFrame:
+def clusterize_demand_points(nb_cluster: int) -> pd.DataFrame:
     years_column = [str(year) for year in range(2010, 2019)]
     X = demand_history_df[years_column]
 
     km = TimeSeriesKMeans(n_clusters=nb_cluster, metric="dtw", max_iter=5, random_state=0).fit(X)
     group = km.predict(X)
-    group_df = pd.DataFrame({
-        DEMAND_POINT_INDEX_COLUMN_NAME: range(len(group)),
-        "group": group
-    })
+    group_df = pd.DataFrame({DEMAND_POINT_INDEX_COLUMN_NAME: range(len(group)), "group": group})
 
     return group_df
 

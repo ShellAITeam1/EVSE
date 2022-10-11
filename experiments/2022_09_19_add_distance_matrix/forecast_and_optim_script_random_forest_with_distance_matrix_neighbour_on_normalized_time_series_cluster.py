@@ -16,8 +16,9 @@ from evse.const import (
     DEMAND_HISTORY_X_COORDINATE_COLUMN_NAME,
     DEMAND_HISTORY_Y_COORDINATE_COLUMN_NAME,
     DEMAND_POINT_INDEX_COLUMN_NAME,
+    SUPPLY_POINT_INDEX_COLUMN_NAME,
     VALUE_COLUMN_NAME,
-    YEAR_INDEX_COLUMN_NAME, SUPPLY_POINT_INDEX_COLUMN_NAME,
+    YEAR_INDEX_COLUMN_NAME,
 )
 from evse.forecast import ForecasterTrainingResult, TrainingResult
 from evse.optimisation import create_data_model
@@ -225,16 +226,14 @@ def feature_engineering(
 
     top_k_min_per_demand_point_df = pd.concat(top_k_min_per_demand_point_list)
 
-    full_stacked_with_distance_df = pd.concat([
-        full_stacked_df.set_index(DEMAND_POINT_INDEX_COLUMN_NAME), top_k_min_per_demand_point_df], axis=1
+    full_stacked_with_distance_df = pd.concat(
+        [full_stacked_df.set_index(DEMAND_POINT_INDEX_COLUMN_NAME), top_k_min_per_demand_point_df], axis=1
     ).reset_index()
 
     return full_stacked_with_distance_df
 
 
-def forecast(
-    full_stacked_df: pd.DataFrame, forecast_horizon: List[int], forecaster: TrainingResult
-) -> pd.DataFrame:
+def forecast(full_stacked_df: pd.DataFrame, forecast_horizon: List[int], forecaster: TrainingResult) -> pd.DataFrame:
 
     full_forecast_stacked_df = full_stacked_df[full_stacked_df[YEAR_INDEX_COLUMN_NAME].isin(forecast_horizon)]
 
@@ -260,17 +259,14 @@ def forecast(
     return unstacked_predictions_df
 
 
-def clusterize_demand_points(nb_cluster:int) -> pd.DataFrame:
+def clusterize_demand_points(nb_cluster: int) -> pd.DataFrame:
     years_column = [str(year) for year in range(2010, 2019)]
     X = demand_history_df[years_column]
     normalized_X = X.apply(lambda x: x / max(x) if max(x) != 0 else 0, axis=1)
 
     km = TimeSeriesKMeans(n_clusters=nb_cluster, metric="dtw", max_iter=5, random_state=0).fit(normalized_X)
     group = km.predict(normalized_X)
-    group_df = pd.DataFrame({
-        DEMAND_POINT_INDEX_COLUMN_NAME: range(len(group)),
-        "group": group
-    })
+    group_df = pd.DataFrame({DEMAND_POINT_INDEX_COLUMN_NAME: range(len(group)), "group": group})
 
     return group_df
 
@@ -320,7 +316,7 @@ if __name__ == "__main__":
         pred_list.append(pred)
 
     full_pred = pd.concat(pred_list).sort_index()
-    print("Whole MAE:", mean_absolute_error(full_pred['value'], full_pred['pred']))
+    print("Whole MAE:", mean_absolute_error(full_pred["value"], full_pred["pred"]))
 
     # --------------------------------- #
     #              Predict              #
