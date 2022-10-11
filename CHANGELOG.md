@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v0.4.0 (2022-10-11)
+### Feature
+* Add splines ([#7](https://github.com/ShellAITeam1/EVSE/issues/7)) ([`60d6507`](https://github.com/ShellAITeam1/EVSE/commit/60d650765a847240dab33719b76faadcf4dbeb9a))
+
 ## v0.3.0 (2022-09-15)
 ### Feature
 * Evse 007 generalized model ([#4](https://github.com/ShellAITeam1/EVSE/issues/4)) ([`e246b38`](https://github.com/ShellAITeam1/EVSE/commit/e246b3876b620d40c0291acfff32c50d861a1544))
