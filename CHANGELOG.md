@@ -2,6 +2,10 @@
 
 <!--next-version-placeholder-->
 
+## v0.5.0 (2023-01-17)
+### Feature
+* EVSE-008 ([#8](https://github.com/ShellAITeam1/EVSE/issues/8)) ([`29d9453`](https://github.com/ShellAITeam1/EVSE/commit/29d9453eda76aa9a4b950462f2819d4e33ecef12))
+
 ## v0.4.0 (2022-10-11)
 ### Feature
 * Add splines ([#7](https://github.com/ShellAITeam1/EVSE/issues/7)) ([`60d6507`](https://github.com/ShellAITeam1/EVSE/commit/60d650765a847240dab33719b76faadcf4dbeb9a))
